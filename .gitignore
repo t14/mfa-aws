@@ -1,0 +1,12 @@
+.idea
+env
+build
+*.egg-info
+bin
+lib
+include
+dist
+pyvenv.cfg
+*.iml
+config.cfg
+__pycache__/
