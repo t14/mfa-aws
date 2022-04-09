@@ -51,6 +51,6 @@ def mfa(args):
 
 def getConfigPath():
     home_path = os.path.expanduser("~")
-    if not Path(home_path + '/.aws-tools').exists():
-        os.makedirs(home_path + '/.aws-tools')
-    return home_path + '/.aws-tools/config.cfg'
+    if not Path(home_path + '/.mfa-aws').exists():
+        os.makedirs(home_path + '/.mfa-aws')
+    return home_path + '/.mfa-aws/config.cfg'
