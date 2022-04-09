@@ -1,21 +1,20 @@
 import os
 import json
 import configparser
-
+from pathlib import Path
 
 def setup(args):
     aws_profile = input("Enter the profile name of the AWS account that requires MFA: ")
     mfa_arn = input("Enter the ARN of the mfa device: ")
-    aws_config_dir = input("Enter the directory location of your AWS cli config file: ").rstrip('/')
+    aws_config_dir = os.path.expanduser("~") + '/.aws'
 
     config = configparser.ConfigParser()
-    config.read('config.cfg')
+    config.read(getConfigPath())
     config.add_section(aws_profile)
     config.set(aws_profile, 'MFA_ARN', mfa_arn)
     config.set(aws_profile, 'AWS_PROFILE', aws_profile)
-    config.set(aws_profile, 'AWS_CREDENTIALS', aws_config_dir + '/credentials')
 
-    with open('config.cfg', 'w') as configfile:
+    with open(getConfigPath(), 'w') as configfile:
         config.write(configfile)
 
     aws_credentials = configparser.ConfigParser()
@@ -30,13 +29,11 @@ def setup(args):
 
 def mfa(args):
     config = configparser.ConfigParser()
-    config.read('config.cfg')
+    config.read(getConfigPath())
     mfa_device_arn = config[args.aws_profile]['MFA_ARN']
     aws_profile = config[args.aws_profile]['AWS_PROFILE']
 
     aws_credentials = configparser.ConfigParser()
-    aws_credentials.read(config[args.aws_profile]['AWS_CREDENTIALS'])
-
     stream = os.popen("aws sts get-session-token --serial-number " + mfa_device_arn + " --token-code " +
                       args.token_code + " --profile " + aws_profile)
 
@@ -52,4 +49,8 @@ def mfa(args):
 
     print('Authentication complete. Token will expire at ' + credentials['Credentials']['Expiration'])
 
-
+def getConfigPath():
+    home_path = os.path.expanduser("~")
+    if not Path(home_path + '/.aws-tools').exists():
+        os.makedirs(home_path + '/.aws-tools')
+    return home_path + '/.aws-tools/config.cfg'
