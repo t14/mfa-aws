@@ -25,6 +25,12 @@ Anytime you need mfa auth on the cli you can run the command like below
 ```sh
 mfa-aws mfa <aws-profile> <mfa-token-code>
 ```
+Once you have successfully authenticated with the above command run your aws commands with the `--profile`
+flag prefixing your aws profile name with `-mfa` for example
+
+```sh
+aws s3 ls --profile <aws-profile>-mfa
+```
 
 ## Prerequisite
 Make sure you have installed AWS CLI

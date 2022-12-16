@@ -10,16 +10,18 @@ def setup(args):
 
     config = configparser.ConfigParser()
     config.read(getConfigPath())
-    config.add_section(aws_profile)
-    config.set(aws_profile, 'MFA_ARN', mfa_arn)
-    config.set(aws_profile, 'AWS_PROFILE', aws_profile)
+    if not config.has_section(aws_profile + '-mfa'):
+        config.add_section(aws_profile + '-mfa')
+        config.set(aws_profile, 'MFA_ARN', mfa_arn)
+        config.set(aws_profile, 'AWS_PROFILE', aws_profile)
 
     with open(getConfigPath(), 'w') as configfile:
         config.write(configfile)
 
     aws_credentials = configparser.ConfigParser()
     aws_credentials.read(aws_config_dir + '/credentials')
-    aws_credentials.add_section(aws_profile + '-mfa')
+    if not aws_credentials.has_section(aws_profile + '-mfa'):
+        aws_credentials.add_section(aws_profile + '-mfa')
 
     with open(aws_config_dir + '/credentials', 'w') as aws_credentials_file:
         aws_credentials.write(aws_credentials_file)
@@ -32,8 +34,9 @@ def mfa(args):
     config.read(getConfigPath())
     mfa_device_arn = config[args.aws_profile]['MFA_ARN']
     aws_profile = config[args.aws_profile]['AWS_PROFILE']
-
+    aws_config_dir = os.path.expanduser("~") + '/.aws'
     aws_credentials = configparser.ConfigParser()
+    aws_credentials.read(aws_config_dir + '/credentials')
     stream = os.popen("aws sts get-session-token --serial-number " + mfa_device_arn + " --token-code " +
                       args.token_code + " --profile " + aws_profile)
 
@@ -48,6 +51,7 @@ def mfa(args):
         aws_credentials.write(credentialfile)
 
     print('Authentication complete. Token will expire at ' + credentials['Credentials']['Expiration'])
+
 
 def getConfigPath():
     home_path = os.path.expanduser("~")
